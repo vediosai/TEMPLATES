@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Template Studio Pro</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Oswald:wght@500;700&family=Caveat:wght@600&family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Manjari:wght@400;700&display=swap">
+<style>
+:root{--bg:#f4f4f6;--tx:#1b1b1f;--pn:#fff;--bd:#d9d9e0;--ac:#e11d48;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121214;--tx:#eee;--pn:#1c1c20;--bd:#33333a}}
+:root[data-theme="dark"]{--bg:#121214;--tx:#eee;--pn:#1c1c20;--bd:#33333a}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,sans-serif}
+.w{max-width:460px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:4px 0;text-align:center}
+.sub{margin:0 0 12px;font-size:13px;opacity:.7;text-align:center}
+.nav{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px}
+.nav button{flex:none;border:1px solid var(--bd);background:var(--pn);color:var(--tx);border-radius:999px;padding:8px 14px;font-size:13px}
+.nav button.on{background:var(--ac);border-color:var(--ac);color:#fff}
+#c,#out{display:block;width:min(100%,380px);height:auto;margin:0 auto;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+.box{background:var(--pn);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-top:12px;display:grid;gap:8px}
+.box h2{font-size:13px;margin:0;opacity:.7;font-weight:600}
+label{font-size:12px;opacity:.8;display:grid;gap:4px}
+input[type=text],textarea{width:100%;padding:10px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font:14px system-ui}
+input[type=file]{font-size:13px}
+input[type=range]{width:100%}
+input[type=color]{width:100%;height:38px;border:1px solid var(--bd);border-radius:10px;background:var(--bg)}
+.row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.btn{border:0;background:var(--ac);color:#fff;border-radius:12px;padding:13px;font-size:15px;font-weight:600;width:100%}
+.btn.g{background:var(--pn);color:var(--tx);border:1px solid var(--bd);font-weight:500;font-size:13px}
+.note{font-size:12px;opacity:.65;text-align:center;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="w">
+<h1>Template Studio Pro</h1>
+<p class="sub">10 designs. Add your photo to every one. Save as a 1080x1920 image.</p>
+<div class="nav" id="nav"></div>
+<canvas id="c" width="1080" height="1920"></canvas>
+<div id="outw"></div>
+<div class="box" id="fields"></div>
+<div class="box" id="photos"></div>
+<div class="box"><h2>Style</h2>
+<label>Your handle<input type="text" id="hd" value="@yourname" maxlength="30"></label>
+<label>Accent colour<input type="color" id="ac" value="#e11d48"></label>
+<label>Text size<input type="range" id="ts" min="60" max="160" value="100"></label></div>
+<div class="box">
+<button class="btn" id="dl">Save image</button>
+<button class="btn g" id="sh">Show image to long-press and save</button>
+<p class="note">Photos stay on your phone. If the Add photo button does nothing, open this page in Chrome or Safari, or tap Open in browser inside Instagram.</p></div>
+</div>
+<script>
+var W=1080,H=1920,cvs=document.getElementById("c"),x=cvs.getContext("2d");
+var S={t:0,ts:1,acc:"#e11d48",h:"@yourname",ph:[{},{},{}],tx:{}},LN=1,DL=null,SK=1;
+var PF='"Playfair Display","Manjari",serif',OS='Oswald,"Manjari",sans-serif';
+function LS(p){try{x.letterSpacing=p+"px"}catch(e){}}
+function rr(X,Y,w,h,r){x.beginPath();
+ if(r==="arch"){x.moveTo(X,Y+h);x.lineTo(X,Y+w/2);x.arc(X+w/2,Y+w/2,w/2,Math.PI,0);x.lineTo(X+w,Y+h);x.closePath();return}
+ if(r==="o"){x.arc(X+w/2,Y+h/2,w/2,0,7);return}
+ r=r||0;x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath()}
+function PHO(k,X,Y,w,h,r){var p=S.ph[k];x.save();rr(X,Y,w,h,r);x.clip();
+ if(p.im){var s=Math.max(w/p.im.width,h/p.im.height)*(p.z||1),iw=p.im.width*s,ih=p.im.height*s;
+  x.drawImage(p.im,X+(w-iw)/2+(p.x||0)/100*iw*.5,Y+(h-ih)/2+(p.y||0)/100*ih*.5,iw,ih)}
+ else{var g=x.createLinearGradient(X,Y,X+w,Y+h);g.addColorStop(0,"#475569");g.addColorStop(1,"#0f172a");x.fillStyle=g;x.fillRect(X,Y,w,h);
+  x.fillStyle="rgba(255,255,255,.55)";x.font="700 "+Math.round(Math.min(w,h)*.09)+"px Oswald,sans-serif";x.textAlign="center";x.textBaseline="middle";LS(0);x.fillText("+ ADD PHOTO",X+w/2,Y+h/2)}
+ x.restore()}
+function wr(s,mw){var o=[];String(s).split("\n").forEach(function(p){var c="";p.split(" ").forEach(function(a){var t=c?c+" "+a:a;if(c&&x.measureText(t).width>mw){o.push(c);c=a}else c=t});o.push(c)});return o}
+function TX(s,X,Y,mw,f,lh,col,al,bot){var k=SK?S.ts:1;f=f.replace(/(\d+)px/,function(m,n){return Math.round(n*k)+"px"});lh=lh*k;x.font=f;var L=wr(s,mw);LN=L.length;if(bot)Y=Y-L.length*lh;x.fillStyle=col;x.textAlign=al||"left";x.textBaseline="top";L.forEach(function(l,i){x.fillText(l,X,Y+i*lh)});return Y}
+function VG(y0,y1,a0,a1){var g=x.createLinearGradient(0,y0,0,y1);g.addColorStop(0,"rgba(0,0,0,"+a0+")");g.addColorStop(1,"rgba(0,0,0,"+a1+")");x.fillStyle=g;x.fillRect(0,Math.min(y0,y1),W,Math.abs(y1-y0))}
+function HD(Y,col,al,X){SK=0;LS(5);TX(S.h.toUpperCase(),X==null?W/2:X,Y,900,"500 34px "+OS,40,col,al||"center");LS(0);SK=1}
+function g(k){var v=S.tx[S.t+k];if(v!=null)return v;var f=TP[S.t].f;for(var i=0;i<f.length;i++)if(f[i][0]==k)return f[i][2];return ""}
+function pol(k,cx,cy,r,w,cap){x.save();x.translate(cx,cy);x.rotate(r*Math.PI/180);x.shadowColor="rgba(0,0,0,.55)";x.shadowBlur=50;x.shadowOffsetY=24;x.fillStyle="#f7f4ee";x.fillRect(-w/2,-w*.6,w,w*1.22);x.shadowColor="transparent";PHO(k,-w/2+32,-w*.6+32,w-64,w-64,0);TX(cap,0,w*.4+2,w-80,'600 58px Caveat,"Manjari",cursive',60,"#333","center");x.restore()}
+function BB(s,side,y){x.font='400 '+Math.round(44*S.ts)+'px -apple-system,system-ui,sans-serif';var L=wr(s,620),h=L.length*60*S.ts+50,w=Math.min(700,Math.max.apply(null,L.map(function(l){return x.measureText(l).width}))+80),X=side?W-70-w:70;
+ x.fillStyle=side?"#0a84ff":"#26262c";rr(X,y,w,h,44);x.fill();x.fillStyle="#fff";x.textAlign="left";x.textBaseline="top";L.forEach(function(l,i){x.fillText(l,X+40,y+25+i*60*S.ts)});return y+h+28}
+var TP=[
+{n:"Cinematic",p:1,f:[["q","Quote","not every night needs an answer."]],d:function(){
+ PHO(0,0,0,W,H);VG(H*.3,H,0,.9);var y=TX(g("q"),130,H-230,820,'italic 400 84px '+PF,118,"#fff","left",1);
+ x.fillStyle=S.acc;x.fillRect(90,y+10,8,H-230-y-20);HD(H-140,"rgba(255,255,255,.7)","left",130)}},
+{n:"Magazine",p:1,f:[["t","Masthead","NIGHT NOTES"],["g","Tag","ISSUE 01"],["h","Headline","even the moon has lonely nights"]],d:function(){
+ PHO(0,0,0,W,H);VG(0,520,.65,0);VG(H*.4,H,0,.92);LS(8);TX(g("t").toUpperCase(),W/2,90,980,'700 130px '+PF,150,"#fff","center");LS(0);x.fillStyle="#fff";x.fillRect(90,265,900,3);
+ var y=TX(g("h").toUpperCase(),90,H-190,900,'700 118px '+OS,128,"#fff","left",1);x.font="600 30px "+OS;var tw=x.measureText(g("g")).width+60;
+ x.fillStyle=S.acc;x.fillRect(90,y-84,tw,58);TX(g("g"),90+tw/2,y-76,tw,"600 30px "+OS,40,"#fff","center");HD(H-110,"rgba(255,255,255,.7)","left",90)}},
+{n:"Polaroids",p:2,f:[["a","Caption 1","summer 2026"],["b","Caption 2","good people"],["q","Quote","some days deserve a photo."]],d:function(){
+ var gr=x.createLinearGradient(0,0,0,H);gr.addColorStop(0,"#292524");gr.addColorStop(1,"#0c0a09");x.fillStyle=gr;x.fillRect(0,0,W,H);
+ pol(0,400,620,-6,600,g("a"));pol(1,690,1160,5,600,g("b"));TX(g("q"),W/2,1660,880,'italic 400 62px '+PF,84,"#f5efe6","center");HD(1862,"rgba(255,255,255,.5)")}},
+{n:"Elegant Frame",p:1,f:[["q","Quote","everything is beautiful when you look at it with love."]],d:function(){
+ x.fillStyle="#f3ead8";x.fillRect(0,0,W,H);PHO(0,90,130,900,1060,32);x.strokeStyle="#8a6f4a";x.lineWidth=3;rr(64,104,952,1112,52);x.stroke();
+ TX(g("q"),W/2,1290,820,'italic 500 78px "Cormorant Garamond","Manjari",serif',100,"#3b2a18","center");x.fillStyle=S.acc;x.fillRect(W/2-60,1690,120,4);HD(1740,"#8a6f4a")}},
+{n:"Film Strip",p:3,f:[["t","Title","Memories"],["c","Caption","Kerala, 2026"]],d:function(){
+ x.fillStyle="#0a0a0a";x.fillRect(0,0,W,H);x.fillStyle="#151515";x.fillRect(0,0,110,H);x.fillRect(W-110,0,110,H);
+ x.fillStyle="#d6d3d1";for(var i=0;i<H;i+=100){rr(35,i+22,40,56,10);x.fill();rr(W-75,i+22,40,56,10);x.fill()}
+ LS(14);TX(g("t").toUpperCase(),W/2,100,800,'700 84px '+OS,100,"#e7e5e4","center");[290,770,1250].forEach(function(y,i){PHO(i,150,y,780,440,10)});
+ TX(g("c").toUpperCase(),W/2,1745,800,'500 46px '+OS,56,"#a8a29e","center");LS(0);HD(1850,"rgba(255,255,255,.4)")}},
+{n:"Arch",p:1,f:[["t","Top label","Night Notes"],["q","Quote","slow roads still lead home."]],d:function(){
+ x.fillStyle="#e8dccb";x.fillRect(0,0,W,H);LS(12);TX(g("t").toUpperCase(),W/2,110,900,'500 40px '+OS,50,S.acc,"center");LS(0);
+ x.strokeStyle=S.acc;x.lineWidth=4;rr(162,212,756,1056,"arch");x.stroke();PHO(0,190,240,700,1000,"arch");
+ TX(g("q"),W/2,1350,800,'italic 400 70px '+PF,96,"#4a3622","center");HD(1780,"#7a6248")}},
+{n:"Duotone Bold",p:1,f:[["h","Headline","STAY\nWILD"],["s","Subline","the world is louder when you are free."]],d:function(){
+ PHO(0,0,0,W,H);x.globalCompositeOperation="saturation";x.fillStyle="#808080";x.fillRect(0,0,W,H);x.globalCompositeOperation="multiply";
+ var gr=x.createLinearGradient(0,0,W,H);gr.addColorStop(0,"#a78bfa");gr.addColorStop(1,"#fdba74");x.fillStyle=gr;x.fillRect(0,0,W,H);x.globalCompositeOperation="source-over";
+ VG(H*.4,H,0,.75);TX(g("h").toUpperCase(),80,H-340,920,'700 230px '+OS,215,"#fff","left",1);TX(g("s"),84,H-300,800,'italic 400 52px '+PF,70,"rgba(255,255,255,.92)","left");HD(H-90,"rgba(255,255,255,.6)","left",84)}},
+{n:"Glass Card",p:1,f:[["l","Label","Night note"],["q","Quote","you are allowed to rest and still be proud of yourself."]],d:function(){
+ PHO(0,0,0,W,H);x.fillStyle="rgba(0,0,0,.28)";x.fillRect(0,0,W,H);rr(90,620,900,680,56);x.fillStyle="rgba(255,255,255,.16)";x.fill();x.strokeStyle="rgba(255,255,255,.45)";x.lineWidth=3;x.stroke();
+ LS(8);TX(g("l").toUpperCase(),W/2,690,800,'500 38px '+OS,44,"#fff","center");LS(0);x.fillStyle=S.acc;x.fillRect(W/2-40,765,80,5);
+ TX(g("q"),W/2,820,760,'italic 400 70px '+PF,96,"#fff","center");HD(H-130,"rgba(255,255,255,.8)")}},
+{n:"Moon Photo",p:1,f:[["q","Quote","the moon never asks why the night is dark."]],d:function(){
+ var gr=x.createRadialGradient(540,1000,100,540,1000,1100);gr.addColorStop(0,"#101a3a");gr.addColorStop(1,"#000");x.fillStyle=gr;x.fillRect(0,0,W,H);
+ var s=7,i,px,py;for(i=0;i<90;i++){s=(s*9301+49297)%233280;px=s/233280*W;s=(s*9301+49297)%233280;py=s/233280*H*.9;x.fillStyle="rgba(255,255,255,"+(.25+(s%5)*.12)+")";x.fillRect(px,py,1+s%3,1+s%3)}
+ x.save();x.shadowColor="rgba(160,190,255,.55)";x.shadowBlur=160;x.fillStyle="#000";rr(160,680,760,760,"o");x.fill();x.restore();PHO(0,160,680,760,760,"o");
+ x.strokeStyle="rgba(255,255,255,.25)";x.lineWidth=4;x.beginPath();x.arc(540,1060,402,0,7);x.stroke();
+ var y=TX(g("q"),150,200,800,'400 74px '+PF,108,"#eef2ff","left");x.fillStyle=S.acc;x.fillRect(100,y+8,8,LN*108-16);HD(H-120,"rgba(255,255,255,.5)")}},
+{n:"Chat Reel",p:1,f:[["n","Name","Amma"],["a","Message 1","are you awake?"],["b","Message 2","yeah. look what I found"],["c","Message 3","that smile looks just like yours"]],d:function(){
+ x.fillStyle="#0b0b0f";x.fillRect(0,0,W,H);x.fillStyle="#18181d";x.fillRect(0,0,W,270);x.fillStyle="#3f3f46";x.beginPath();x.arc(540,110,50,0,7);x.fill();
+ TX(g("n"),W/2,175,600,'600 40px -apple-system,system-ui,sans-serif',48,"#fff","center");
+ var y=330;y=BB(g("a"),0,y);y=BB(g("b"),1,y);PHO(0,W-70-640,y,640,760,44);y+=788;y=BB(g("c"),0,y);
+ x.fillStyle="#26262c";rr(70,y,190,100,50);x.fill();x.fillStyle="#9ca3af";[0,1,2].forEach(function(i){x.beginPath();x.arc(120+i*45,y+50,11,0,7);x.fill()});HD(H-90,"rgba(255,255,255,.4)")}}
+];
+var nav=document.getElementById("nav"),fl=document.getElementById("fields"),pl=document.getElementById("photos"),raf=0;
+function draw(){cancelAnimationFrame(raf);raf=requestAnimationFrame(function(){x.setTransform(1,0,0,1,0,0);x.globalCompositeOperation="source-over";x.shadowColor="transparent";x.shadowBlur=0;LS(0);x.clearRect(0,0,W,H);TP[S.t].d()})}
+function build(){
+ Array.prototype.forEach.call(nav.children,function(b,i){b.className=i===S.t?"on":""});
+ fl.innerHTML="<h2>Text</h2>";TP[S.t].f.forEach(function(f){var l=document.createElement("label");l.textContent=f[1];var t=document.createElement("textarea");t.rows=f[2].indexOf("\n")>=0||f[2].length>40?2:1;t.value=g(f[0]);t.oninput=function(){S.tx[S.t+f[0]]=t.value;draw()};l.appendChild(t);fl.appendChild(l)});
+ pl.innerHTML="<h2>Photos</h2>";
+ for(var k=0;k<TP[S.t].p;k++)(function(k){var p=S.ph[k],l=document.createElement("label");l.textContent="Photo "+(k+1);var f=document.createElement("input");f.type="file";f.accept="image/*";f.onchange=function(){load(f.files&&f.files[0],k)};l.appendChild(f);pl.appendChild(l);
+  var r=document.createElement("div");r.className="row";[["z","Zoom",100,300,100],["x","Left/right",-50,50,0],["y","Up/down",-50,50,0]].forEach(function(s){var a=document.createElement("label");a.textContent=s[1];var i=document.createElement("input");i.type="range";i.min=s[2];i.max=s[3];i.value=p[s[0]]==null?s[4]:p[s[0]];i.oninput=function(){p[s[0]]=+i.value;if(s[0]=="z")p.z=p.z/100;draw()};if(s[0]=="z")i.value=(p.z||1)*100;a.appendChild(i);r.appendChild(a)});pl.appendChild(r)})(k)}
+function load(f,k){if(!f)return;var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){S.ph[k]={im:im,z:1,x:0,y:0};build();draw()};im.src=r.result};r.readAsDataURL(f)}
+TP.forEach(function(t,i){var b=document.createElement("button");b.textContent=(i+1)+". "+t.n;b.onclick=function(){S.t=i;build();draw()};nav.appendChild(b)});
+document.getElementById("hd").oninput=function(e){S.h=e.target.value;draw()};
+document.getElementById("ac").oninput=function(e){S.acc=e.target.value;draw()};
+document.getElementById("ts").oninput=function(e){S.ts=e.target.value/100;draw()};
+document.onpaste=function(e){var it=e.clipboardData&&e.clipboardData.items;if(!it)return;for(var i=0;i<it.length;i++)if(it[i].type.indexOf("image")==0){var k=0;while(k<TP[S.t].p-1&&S.ph[k].im)k++;load(it[i].getAsFile(),k);break}};
+document.getElementById("dl").onclick=function(){if(!DL){cvs.toBlob(function(b){var u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download="template-"+(S.t+1)+".png";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000);document.getElementById("sh").click()},"image/png");return}
+ cvs.toBlob(function(b){DL.save({filename:"template-"+(S.t+1)+".png",data:b}).catch(function(){})},"image/png")};
+document.getElementById("sh").onclick=function(){var o=document.getElementById("outw");o.innerHTML='<p class="note">Long-press the image and choose Save image.</p><img id="out" alt="template">';document.getElementById("out").src=cvs.toDataURL("image/png")};
+function boot(){build();draw()}
+build();draw();
+try{Promise.all(['700 40px "Playfair Display"','italic 40px "Playfair Display"','700 40px Oswald','600 40px Caveat','italic 500 40px "Cormorant Garamond"','700 40px Manjari'].map(function(f){return document.fonts.load(f,"Aa")})).then(draw)}catch(e){}
+try{claude.use("downloads").then(function(d){DL=d})}catch(e){}
+</script>
+</body>
+</html>
